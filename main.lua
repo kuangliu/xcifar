@@ -25,15 +25,17 @@ ds = ListDataset({
 ------------------------------------------------
 -- 2. define net
 --
-net = nn.Sequential()
-net:add(nn.Reshape(32*32*3))
-net:add(nn.Linear(32*32*3, 512))
-net:add(nn.ReLU(true))
-net:add(nn.Dropout(0.2))
-net:add(nn.Linear(512, 512))
-net:add(nn.ReLU(true))
-net:add(nn.Dropout(0.2))
-net:add(nn.Linear(512, 10))
+-- net = nn.Sequential()
+-- net:add(nn.Reshape(32*32*3))
+-- net:add(nn.Linear(32*32*3, 512))
+-- net:add(nn.ReLU(true))
+-- net:add(nn.Dropout(0.2))
+-- net:add(nn.Linear(512, 512))
+-- net:add(nn.ReLU(true))
+-- net:add(nn.Dropout(0.2))
+-- net:add(nn.Linear(512, 10))
+dofile('resnet.lua')
+net = getResNet()
 
 ------------------------------------------------
 -- 3. init optimization params
@@ -62,6 +64,8 @@ opt = {
     criterion = 'CrossEntropyCriterion',
     optimState = optimState,
     ----------- general options ----------------
+    backend = 'GPU',    -- CPU or GPU, default CPU
+    nGPU = 2,           -- nb of GPUs to use, default 1
     verbose = false
 }
 

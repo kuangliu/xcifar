@@ -161,7 +161,7 @@ end
 ----------------------------------------------------------------
 -- enable multi-GPU
 --
-function utils.makeDataParallelTable(net, nGPU)
+function utils.makeDataParallelTable(net, nGPU) -- TODO: problem
     if nGPU > 1 then
         local gpus = torch.range(1, nGPU):totable()
         local fastest, benchmark = cudnn.fastest, cudnn.benchmark
