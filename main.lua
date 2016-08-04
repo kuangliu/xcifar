@@ -1,9 +1,9 @@
-require 'torch'
+require 'pl'
 require 'nn'
 require 'nnx'
+require 'torch'
 require 'optim'
 require 'image'
-require 'pl'
 require 'paths'
 
 utils = dofile('utils.lua')
@@ -52,6 +52,7 @@ opt = {
     net = net,
     ----------- data options -------------------
     dataset = ds,
+    nhorse = 2,         -- nb of threads to load data, default 2
     ----------- training options ---------------
     batchSize = 128,
     nEpoch = 5,

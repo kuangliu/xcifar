@@ -19,7 +19,7 @@ function xtorch.init(opt)
     confusion = optim.ConfusionMatrix(opt.nClass)
     -- data loader
     threads = require 'threads'
-    horses = threads.Threads(2,
+    horses = threads.Threads(opt.nhorse or 2, -- horse is faster than donkey!
         function()
             require 'torch'
         end,
@@ -50,9 +50,10 @@ function xtorch.train(opt)
     -- do one epoch
     trainLoss = 0
     local epochSize = math.floor(dataset.ntrain/opt.batchSize)
+    epochSize = 10
     local bs = opt.batchSize
     for i = 1,epochSize do
-		horses:addjob(
+        horses:addjob(
             -- the job callback (runs in data-worker thread)
             function()
                 local inputs, targets = dataset:sample(bs)
@@ -86,7 +87,8 @@ function xtorch.train(opt)
     end
 
     if opt.verbose then print(confusion) end
-    confusion:zero() -- reset confusion for test
+    confusion:zero()     -- reset confusion for test
+    horses:synchronize() -- wait all horses back
 end
 
 ----------------------------------------------------------------
@@ -97,6 +99,7 @@ function xtorch.test(opt)
 
     local dataset = opt.dataset
     local epochSize = math.floor(dataset.ntest/opt.batchSize)
+    epochSize = 10
     local bs = opt.batchSize
 
     testLoss = 0
@@ -123,6 +126,8 @@ function xtorch.test(opt)
 
     if opt.verbose then print(confusion) end
     confusion:zero()
+    horses:synchronize()
+    print('\n')
 end
 
 return xtorch
