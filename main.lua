@@ -16,8 +16,8 @@ xtorch = dofile('xtorch.lua')
 dofile('classdataset.lua')
 ds = ClassDataset({
     trainData = '/search/ssd/liukuang/train',
-	testData = '/search/ssd/liukuang/test',
-	imsize = 32
+    testData = '/search/ssd/liukuang/test',
+    imsize = 32
 })
 
 ------------------------------------------------
@@ -50,13 +50,13 @@ opt = {
     nEpoch = 500,
     nClass = 10,
     ----------- optimization options -----------
-    optimizer = 'SGD',
-    criterion = 'CrossEntropyCriterion',
+    optimizer = optim.adam,
+    criterion = nn.CrossEntropyCriterion,
     optimState = optimState,
     ----------- general options ----------------
     backend = 'GPU',    -- CPU or GPU, default CPU
     nGPU = 4,
-	verbose = true
+    verbose = true
 }
 
 ------------------------------------------------

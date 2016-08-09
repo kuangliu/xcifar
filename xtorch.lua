@@ -16,7 +16,7 @@ end
 --
 function xtorch.init()
     net = opt.net
-    criterion = nn.CrossEntropyCriterion()
+    criterion = opt.criterion()
 
     -- use GPU
     if opt.backend == 'GPU' then
@@ -134,7 +134,7 @@ function xtorch.train()
                     utils.progress(i, epochSize, trainLoss/i, confusion.totalValid)
                     return f, gradParameters
                 end
-                optim.sgd(feval, parameters, optimState)
+                opt.optimizer(feval, parameters, optimState)
                 xtorch.cudaSync()
             end
         )

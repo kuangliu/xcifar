@@ -24,15 +24,6 @@ ds = ListDataset({
 ------------------------------------------------
 -- 2. define net
 --
--- net = nn.Sequential()
--- net:add(nn.Reshape(32*32*3))
--- net:add(nn.Linear(32*32*3, 512))
--- net:add(nn.ReLU(true))
--- net:add(nn.Dropout(0.2))
--- net:add(nn.Linear(512, 512))
--- net:add(nn.ReLU(true))
--- net:add(nn.Dropout(0.2))
--- net:add(nn.Linear(512, 10))
 dofile('resnet.lua')
 dofile('augment.lua')
 net = getResNet()
@@ -57,11 +48,11 @@ opt = {
     nhorse = 4,         -- nb of threads to load data, default 2
     ----------- training options ---------------
     batchSize = 128,
-    nEpoch = 200,
+    nEpoch = 500,
     nClass = 10,
     ----------- optimization options -----------
-    optimizer = 'SGD',
-    criterion = 'CrossEntropyCriterion',
+    optimizer = optim.sgd,
+    criterion = nn.CrossEntropyCriterion,
     optimState = optimState,
     ----------- general options ----------------
     backend = 'GPU',    -- CPU or GPU, default CPU
