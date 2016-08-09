@@ -138,17 +138,31 @@ end
 --
 function utils.MSRinit(net)
     -- init CONV layer
-    for _,layer in pairs(net:findModules('nn.SpatialConvolution')) do
-        local n = layer.kW*layer.kH*layer.nOutputPlane
-        layer.weight:normal(0, math.sqrt(2/n))
-        layer.bias:zero()
+    local function initconv(name)
+        for _,layer in pairs(net:findModules(name)) do
+            local n = layer.kW*layer.kH*layer.nOutputPlane
+            layer.weight:normal(0,math.sqrt(2/n))
+            if cudnn.version >= 4000 then
+                layer.bias = nil
+                layer.gradBias = nil
+            else
+                layer.bias:zero()
+            end
+        end
     end
 
-    -- init BN layer
-    for _,layer in pairs(net:findModules('nn.SpatialBatchNormalization')) do
-        layer.weight:fill(1)
-        layer.bias:zero()
+    -- init BN layers
+    local function initbn(name)
+        for _,layer in pairs(net:findModules(name)) do
+            layer.weight:fill(1)
+            layer.bias:zero()
+        end
     end
+
+    initconv('cudnn.SpatialConvolution')
+    initconv('nn.SpatialConvolution')
+    initbn('cudnn.SpatialBatchNormalization')
+    initbn('nn.SpatialBatchNormalization')
 
     -- init FC layers
     for _,layer in pairs(net:findModules'nn.Linear') do
@@ -161,7 +175,7 @@ end
 ----------------------------------------------------------------
 -- enable multi-GPU
 --
-function utils.makeDataParallelTable(net, nGPU) -- TODO: problem
+function utils.makeDataParallelTable(net, nGPU)
     if nGPU > 1 then
         local gpus = torch.range(1, nGPU):totable()
         local fastest, benchmark = cudnn.fastest, cudnn.benchmark
@@ -172,7 +186,6 @@ function utils.makeDataParallelTable(net, nGPU) -- TODO: problem
                         local cudnn = require 'cudnn'
                         cudnn.fastest, cudnn.benchmark = fastest, benchmark
                     end)
-        dpt.gradInput = nil
         net = dpt:cuda()
     end
     return net

@@ -1,1 +1,1 @@
-# Train cifar10 with dataloader & xtorch
+# Train cifar10 with xtorch-dataset & xtorch

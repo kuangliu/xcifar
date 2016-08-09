@@ -1,22 +1,32 @@
 --------------------------------------------------------------------------------
--- listdataset loads training/test data with list files containing the names
--- and targets.
+-- classdataset loads training/test data from disk. But unlike listdataset,
+-- there is no index list, the images are organized in subfolders, the subfolder
+-- name is the class name.
+--
+-- Directory arrangement:
+-- -- train
+--      |_ class 1
+--      |_ class 2
+--      |_ ...
+-- -- test
+--      |_ class 1
+--      |_ class 2
+--      |_ ...
 --------------------------------------------------------------------------------
-dofile('dataloader/listdataloader.lua')
+dofile('./dataloader/classdataloader.lua')
 
-local ListDataset = torch.class 'ListDataset'
+local ClassDataset = torch.class 'ClassDataset'
 
-function ListDataset:__init(args)
+function ClassDataset:__init(args)
     -- parse args
-    local argnames = {'trainData', 'trainList',
-                      'testData', 'testList', 'imsize'}
+    local argnames = {'trainData', 'testData', 'imsize'}
     for _,v in pairs(argnames) do
         self[v] = args[v]
     end
 
     -- init trainloader & testLoder
-    self:__initLoader('trainLoader', self.trainData, self.trainList)
-    self:__initLoader('testLoader', self.testData, self.testList)
+    self:__initLoader('trainLoader', self.trainData)
+    self:__initLoader('testLoader', self.testData)
     self:__calcMeanStd() -- compute trainLoader mean & std
 
     self.ntrain = self.trainLoader.nSamples
@@ -50,7 +60,7 @@ end
 ---------------------------------------------------------------
 -- init trainLoader & testLoader
 --
-function ListDataset:__initLoader(loaderName, dataPath, listPath)
+function ClassDataset:__initLoader(loaderName, dataPath)
     paths.mkdir('cache')
 
     -- set the default image processing function to resize
@@ -62,7 +72,7 @@ function ListDataset:__initLoader(loaderName, dataPath, listPath)
         loader = torch.load(filePath)
     else
         print('==> init '..loaderName..'...')
-        loader = ListDataLoader(dataPath, listPath, imscale)
+        loader = ClassDataLoader(dataPath, imscale)
     end
     self[loaderName] = loader
 end
@@ -70,7 +80,7 @@ end
 ---------------------------------------------------------------
 -- calculate training mean & std
 --
-function ListDataset:__calcMeanStd()
+function ClassDataset:__calcMeanStd()
     local filePath = './cache/meanstd.t7'
     local cache, mean, std
     if paths.filep(filePath) then
@@ -103,13 +113,13 @@ end
 ---------------------------------------------------------------
 -- load training batch sample
 --
-function ListDataset:sample(quantity)
+function ClassDataset:sample(quantity)
     return self.trainLoader:sample(quantity)
 end
 
 ---------------------------------------------------------------
 -- load test batch sample
 --
-function ListDataset:get(i1,i2)
+function ClassDataset:get(i1,i2)
     return self.testLoader:get(i1,i2)
 end

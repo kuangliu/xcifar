@@ -8,7 +8,7 @@ ffi = require 'ffi';
 
 torch.setdefaulttensortype('torch.FloatTensor')
 
-local DataLoader = torch.class 'DataLoader'
+local ListDataLoader = torch.class 'ListDataLoader'
 local pathcat = paths.concat
 
 ---------------------------------------------------------------------------
@@ -17,12 +17,11 @@ local pathcat = paths.concat
 --  - listPath: a text file containing sample names & targets.
 --  - imfunc: the image processing function
 --
-function DataLoader:__init(dataPath, listPath, imfunc)
+function ListDataLoader:__init(dataPath, listPath, imfunc)
     assert(paths.dirp(dataPath), dataPath..' not exist!')
     assert(paths.filep(listPath), listPath..' not exist!')
     self.dataPath = dataPath
     self.listPath = listPath
-    self.loadsize = loadsize
     -- set the default image processing function, just resize to loadsize
     self.__imfunc = imfunc
 
@@ -42,7 +41,7 @@ end
 -- We first pre-allocate names sized [N, constLength],
 -- and trim to [N, maxNameLength] later.
 --
-function DataLoader:__parseList()
+function ListDataLoader:__parseList()
     print('parsing list...')
 
     local constLength = 50           -- assume the length of all file names < constLength
@@ -86,7 +85,7 @@ end
 --------------------------------------
 -- load images from the given indices.
 --
-function DataLoader:__loadImages(indices)
+function ListDataLoader:__loadImages(indices)
     local quantity = indices:nElement()
     local images
     for i = 1,quantity do
@@ -104,7 +103,7 @@ end
 -- randomly sample quantity images from training dataset.
 -- load samples maybe overlapped.
 --
-function DataLoader:sample(quantity)
+function ListDataLoader:sample(quantity)
     assert(quantity, '[ERROR] => No sample quantity specified!')
     local indices = torch.LongTensor(quantity):random(self.nSamples)
     local images  = self:__loadImages(indices)
@@ -112,30 +111,20 @@ function DataLoader:sample(quantity)
     return images, targets
 end
 
----------------------------------------------------------
--- first sample class, then sample images for each class
--- it's more balanced.
-function DataLoader:sampleByClass(quantity)
-    assert(quantity, '[ERROR] => No sample quantity specified!')
-    for i = 1, quantity do
-        
-    end
-end
-
----------------------------------------------------------
+------------------------------------------------------------
 -- return a batch specified by indices.
 --
-function DataLoader:loadBatchByIndex(indices)
+function ListDataLoader:loadBatchByIndex(indices)
     local images = self:__loadImages(indices)
     local targets = self.targets:index(1,indices)
     return images, targets
 end
 
----------------------------------------------------------
+------------------------------------------------
 -- get images in the index range [i1, i2]
 -- used to load test samples.
 --
-function DataLoader:get(i1,i2)
+function ListDataLoader:get(i1,i2)
     local indices = torch.range(i1,i2):long()
     local images = self:__loadImages(indices)
     local targets = self.targets:index(1,indices)
